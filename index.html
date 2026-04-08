@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CPU Fan Patrol</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23161a1f'/%3E%3Crect x='8' y='8' width='48' height='48' rx='10' fill='%23252c35'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%23424b56' stroke-width='8'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23ffd36f'/%3E%3Cpath d='M32 30 C40 13 51 15 52 24 C52 33 43 37 34 36 Z' fill='%23edf1f6'/%3E%3Cpath d='M34 32 C51 40 49 51 40 52 C31 52 27 43 28 34 Z' fill='%23edf1f6'/%3E%3Cpath d='M32 34 C24 51 13 49 12 40 C12 31 21 27 30 28 Z' fill='%23edf1f6'/%3E%3Cpath d='M30 32 C13 24 15 13 24 12 C33 12 37 21 36 30 Z' fill='%23edf1f6'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Fredoka:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hud-panel">
+        <p class="eyebrow">CPU Fan Patrol</p>
+        <h1>Click the right fan. Type the big letter.</h1>
+        <p class="intro">
+          A tiny repair game for learning the mouse and keyboard. Follow the big
+          prompt and help every fan spin.
+        </p>
+
+        <div class="task-card">
+          <div class="task-topline">
+            <p class="label">Current Task</p>
+            <span id="round-pill" class="round-pill">Round 1 / 8</span>
+          </div>
+          <h2 id="task-title" class="task-title">Fan Hunt</h2>
+          <div id="click-target" class="click-target">
+            <span id="target-color-chip" class="target-color-chip"></span>
+            <span class="target-hand">☝</span>
+          </div>
+          <p id="task-instructions" class="task-instructions">
+            Click the glowing fan.
+          </p>
+        </div>
+
+        <div id="word-card" class="word-card">
+          <div class="word-head">
+            <p class="label">Keyboard Letters</p>
+            <p id="word-hint" class="word-hint">Press the glowing letter.</p>
+          </div>
+          <div id="word-track" class="word-track" aria-live="polite"></div>
+        </div>
+
+        <div class="score-row">
+          <div class="score-pill">
+            <span class="score-label">Stars</span>
+            <strong id="stars-count">0 / 8</strong>
+            <div id="stars-track" class="stars-track" aria-hidden="true"></div>
+          </div>
+          <div class="score-pill">
+            <span class="score-label">Fans spinning</span>
+            <strong id="awake-count">0 / 7</strong>
+            <span id="breeze-level" class="score-subtle">Quiet room</span>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button id="sound-toggle" class="ui-button" type="button">
+            Sound: On
+          </button>
+          <button id="restart-button" class="ui-button ui-button-soft" type="button">
+            Play Again
+          </button>
+        </div>
+
+        <p id="status-text" class="status-text" aria-live="polite">
+          Tap the glowing fan to begin.
+        </p>
+      </section>
+
+      <section class="play-panel">
+        <div class="scene-frame">
+          <div class="sky-glow sky-glow-left"></div>
+          <div class="sky-glow sky-glow-right"></div>
+
+          <div class="room-decor">
+            <div class="cloud cloud-a"></div>
+            <div class="cloud cloud-b"></div>
+            <div class="trace trace-a"></div>
+            <div class="trace trace-b"></div>
+            <div class="trace trace-c"></div>
+            <div class="spark spark-a"></div>
+            <div class="spark spark-b"></div>
+            <div class="spark spark-c"></div>
+          </div>
+
+          <div class="backdrop">
+            <div class="window"></div>
+            <div class="motherboard">
+              <div class="chip chip-a"></div>
+              <div class="chip chip-b"></div>
+              <div class="chip chip-c"></div>
+              <div class="board-line board-line-a"></div>
+              <div class="board-line board-line-b"></div>
+              <div class="board-line board-line-c"></div>
+            </div>
+            <div class="pc-tower">
+              <div class="tower-face">
+                <span class="tower-eye"></span>
+                <span class="tower-eye"></span>
+                <span class="tower-smile"></span>
+              </div>
+              <div class="tower-screen"></div>
+            </div>
+            <div class="desk"></div>
+            <div class="plant">
+              <span class="leaf leaf-a"></span>
+              <span class="leaf leaf-b"></span>
+              <span class="pot"></span>
+            </div>
+          </div>
+
+          <div id="scene-prompt" class="scene-prompt">Tap the glowing fan.</div>
+          <div id="fan-field" class="fan-field" aria-label="CPU fan playground"></div>
+
+          <div class="celebration-strip">
+            <span class="dot dot-a"></span>
+            <span class="dot dot-b"></span>
+            <span class="dot dot-c"></span>
+            <span class="dot dot-d"></span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
