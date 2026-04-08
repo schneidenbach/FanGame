@@ -760,7 +760,7 @@ function fanSvgMarkup(fan) {
 }
 
 function createBladeMarkup(fan) {
-  const bladeCount = fan.special ? 7 : 7;
+  const bladeCount = fan.special ? 6 : 5;
   let markup = "";
 
   for (let index = 0; index < bladeCount; index += 1) {
@@ -768,12 +768,12 @@ function createBladeMarkup(fan) {
     markup += `
       <g transform="rotate(${angle} 50 50)">
         <path
-          d="M50 49 C58 22, 74 20, 77 28 C78 38, 68 46, 55 51 Z"
-          fill="#101419"
+          d="M50 50 C54 33, 63 24, 71 25 C74 31, 69 40, 58 47 C55 49, 52 50, 50 50 Z"
+          fill="#161b22"
         ></path>
         <path
-          d="M53 48 C60 29, 71 27, 72 32 C72 39, 64 44, 56 46 Z"
-          fill="rgba(255,255,255,0.06)"
+          d="M52 49 C56 36, 62 30, 67 31 C68 35, 64 40, 57 45 C55 46, 53 48, 52 49 Z"
+          fill="rgba(255,255,255,0.085)"
         ></path>
       </g>
     `;
