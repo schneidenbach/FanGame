@@ -15,19 +15,16 @@ const breezeLevel = document.getElementById("breeze-level");
 const statusText = document.getElementById("status-text");
 const soundToggle = document.getElementById("sound-toggle");
 const restartButton = document.getElementById("restart-button");
-const freeplayCard = document.getElementById("freeplay-card");
-const freeplayText = document.getElementById("freeplay-text");
 const sizeSlider = document.getElementById("size-slider");
 const sizeLabel = document.getElementById("size-label");
-const speedButtons = Array.from(document.querySelectorAll(".speed-button"));
 
 const TOTAL_ROUNDS = 8;
 const ROUND_PATTERN = ["click", "click", "word", "click", "word", "click", "word", "click"];
 const LETTER_BANK = ["F", "A", "N", "S", "D", "J", "K", "L"];
 const SIZE_PRESETS = [
-  { label: "Small", scale: 0.88 },
-  { label: "Medium", scale: 1 },
-  { label: "Large", scale: 1.18 }
+  { label: "Small", scale: 1 },
+  { label: "Medium", scale: 1.18 },
+  { label: "Large", scale: 1.34 }
 ];
 
 const fanDefinitions = [
@@ -132,27 +129,19 @@ sizeSlider.addEventListener("input", () => {
   renderSizeControl();
   renderFans();
 });
-speedButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    if (!state.finished || !state.selectedFanId) {
-      return;
-    }
-
-    const fan = fans.find((item) => item.id === state.selectedFanId);
-    if (!fan) {
-      return;
-    }
-
-    fan.speed = Number(button.dataset.speedChoice);
-    renderFans();
-    updateHud();
-    renderFreePlayControls();
-    playFanBoost();
-    setStatus(`${fan.shortLabel} fan speed is ${fan.speed}.`);
-  });
-});
 
 fanField.addEventListener("click", (event) => {
+  const speedChoice = event.target.closest(".fan-speed-choice");
+  if (speedChoice && state.finished) {
+    const fan = currentSelectedFan();
+    fan.speed = Number(speedChoice.dataset.speedChoice);
+    renderFans();
+    updateHud();
+    playFanBoost();
+    setStatus(`${fan.shortLabel} fan speed is ${fan.speed}.`);
+    return;
+  }
+
   const button = event.target.closest(".fan-button");
   if (!button) {
     return;
@@ -251,7 +240,6 @@ function resetGame() {
   updateHud();
   renderSoundToggle();
   renderSizeControl();
-  renderFreePlayControls();
   setStatus("Tap the glowing fan to begin.");
 }
 
@@ -299,14 +287,13 @@ function finishGame() {
   state.currentTask = {
     type: "done",
     title: "Free Play Time",
-    instructions: "Drag the fans around and tap 0, 1, 2, or 3 for speed.",
+    instructions: "Drag the fans around. The selected fan gets speed buttons above it.",
     prompt: "Now you can move the fans and change their speed."
   };
 
   updateTaskUi();
   renderFans();
   updateHud();
-  renderFreePlayControls();
   setStatus("Every fan is spinning. Hooray.");
   playRoundWin();
 }
@@ -358,7 +345,6 @@ function updateTaskUi() {
   renderWordTrack();
   renderFans();
   updateHud();
-  renderFreePlayControls();
 }
 
 function updateHud() {
@@ -375,22 +361,6 @@ function renderSizeControl() {
   const preset = SIZE_PRESETS[state.sizeIndex];
   sizeSlider.value = String(state.sizeIndex);
   sizeLabel.textContent = preset.label;
-}
-
-function renderFreePlayControls() {
-  if (state.finished) {
-    freeplayCard.classList.remove("is-hidden");
-    const fan = fans.find((item) => item.id === state.selectedFanId) || fans[0];
-    freeplayText.textContent = `Selected: ${fan.shortLabel}. Drag it, then pick a speed.`;
-  } else {
-    freeplayCard.classList.add("is-hidden");
-    return;
-  }
-
-  speedButtons.forEach((button) => {
-    const isActive = Number(button.dataset.speedChoice) === currentSelectedFan().speed;
-    button.classList.toggle("is-active", isActive);
-  });
 }
 
 function renderStars() {
@@ -486,7 +456,31 @@ function renderFans() {
     button.appendChild(shadow);
     button.appendChild(caption);
     fanField.appendChild(button);
+
+    if (state.finished && state.selectedFanId === fan.id) {
+      fanField.appendChild(renderSpeedPopover(fan, sizeScale));
+    }
   });
+}
+
+function renderSpeedPopover(fan, sizeScale) {
+  const popover = document.createElement("div");
+  popover.className = "fan-speed-popover";
+  popover.style.left = `${fan.x}%`;
+  popover.style.top = `calc(${fan.y}% - ${Math.round((fan.size * sizeScale) / 2)}px - 18px)`;
+
+  [0, 1, 2, 3].forEach((speed) => {
+    const chip = document.createElement("span");
+    chip.className = "fan-speed-choice";
+    chip.dataset.speedChoice = String(speed);
+    chip.textContent = String(speed);
+    if (fan.speed === speed) {
+      chip.classList.add("is-active");
+    }
+    popover.appendChild(chip);
+  });
+
+  return popover;
 }
 
 function chooseClickFan() {
@@ -533,7 +527,6 @@ function currentSelectedFan() {
 function selectFan(fanId) {
   state.selectedFanId = fanId;
   renderFans();
-  renderFreePlayControls();
   const fan = currentSelectedFan();
   setStatus(`${fan.shortLabel} fan is selected.`);
 }

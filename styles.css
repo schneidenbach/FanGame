@@ -225,46 +225,11 @@ h1 {
   gap: 10px;
 }
 
-.freeplay-card,
 .size-card {
   border-radius: 24px;
   padding: 16px 18px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(130, 92, 54, 0.1);
-}
-
-.freeplay-card.is-hidden {
-  display: none;
-}
-
-.freeplay-text {
-  margin: 8px 0 12px;
-  font-size: 0.98rem;
-  line-height: 1.4;
-}
-
-.speed-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.speed-button {
-  appearance: none;
-  border: 0;
-  border-radius: 14px;
-  padding: 10px 0;
-  font: inherit;
-  font-weight: 700;
-  font-size: 1.1rem;
-  background: #f2e7d8;
-  color: #5d4633;
-  cursor: pointer;
-}
-
-.speed-button.is-active {
-  background: #48372a;
-  color: #fff9f0;
 }
 
 .size-head {
@@ -842,6 +807,37 @@ h1 {
   animation: point-bob 0.9s ease-in-out infinite;
 }
 
+.fan-speed-popover {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 251, 242, 0.96);
+  box-shadow: 0 12px 20px rgba(73, 48, 25, 0.14);
+  transform: translateX(-50%);
+}
+
+.fan-speed-choice {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: #f2e7d8;
+  color: #5d4633;
+  cursor: pointer;
+  user-select: none;
+}
+
+.fan-speed-choice.is-active {
+  background: #48372a;
+  color: #fff9f0;
+}
+
 .celebration-strip {
   position: absolute;
   inset-inline: 24px;
@@ -1025,10 +1021,6 @@ body[data-breeze="turbo"] .spark {
 
   .button-row {
     flex-direction: column;
-  }
-
-  .speed-buttons {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .scene-frame {
