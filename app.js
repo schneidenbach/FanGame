@@ -721,10 +721,20 @@ function fanSvgMarkup(fan) {
           <stop offset="0%" stop-color="#4c5562"></stop>
           <stop offset="100%" stop-color="#1c2026"></stop>
         </radialGradient>
+        <radialGradient id="opening-fill-${fan.id}" cx="50%" cy="46%" r="60%">
+          <stop offset="0%" stop-color="#5c6875"></stop>
+          <stop offset="75%" stop-color="#46515d"></stop>
+          <stop offset="100%" stop-color="#353f4a"></stop>
+        </radialGradient>
+        <mask id="opening-mask-${fan.id}" maskUnits="userSpaceOnUse">
+          <rect x="13" y="13" width="74" height="74" rx="10" fill="white"></rect>
+          <circle cx="50" cy="50" r="31.5" fill="black"></circle>
+        </mask>
       </defs>
 
       <rect x="8" y="8" width="84" height="84" rx="11" fill="#20252c"></rect>
-      <rect x="13" y="13" width="74" height="74" rx="10" fill="#15191e"></rect>
+      <rect x="13" y="13" width="74" height="74" rx="10" fill="#15191e" mask="url(#opening-mask-${fan.id})"></rect>
+      <circle cx="50" cy="50" r="31.5" fill="url(#opening-fill-${fan.id})"></circle>
 
       <path d="M8 24 L24 8 L30 14 L14 30 Z" fill="#2d343e"></path>
       <path d="M76 8 L92 24 L86 30 L70 14 Z" fill="#2d343e"></path>
