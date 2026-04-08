@@ -731,21 +731,21 @@ function fanSvgMarkup(fan) {
       <path d="M8 76 L24 92 L30 86 L14 70 Z" fill="#2d343e"></path>
       <path d="M76 92 L92 76 L86 70 L70 86 Z" fill="#2d343e"></path>
 
-      <circle cx="50" cy="50" r="34.5" fill="none" ${ringStroke} stroke-width="5.5"></circle>
-      <circle cx="50" cy="50" r="30.5" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.4"></circle>
-      <circle cx="50" cy="50" r="22.8" fill="rgba(15,19,24,0.34)"></circle>
+      <circle cx="50" cy="50" r="36.5" fill="none" ${ringStroke} stroke-width="4.2"></circle>
+      <circle cx="50" cy="50" r="32.5" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.2"></circle>
+      <circle cx="50" cy="50" r="25.5" fill="rgba(255,255,255,0.04)"></circle>
 
       <g opacity="0.9">
-        <path d="M24 24 L38 38" stroke="#3e4651" stroke-width="4.6" stroke-linecap="round"></path>
-        <path d="M76 24 L62 38" stroke="#3e4651" stroke-width="4.6" stroke-linecap="round"></path>
-        <path d="M24 76 L38 62" stroke="#3e4651" stroke-width="4.6" stroke-linecap="round"></path>
-        <path d="M76 76 L62 62" stroke="#3e4651" stroke-width="4.6" stroke-linecap="round"></path>
+        <path d="M24 24 L38 38" stroke="#3e4651" stroke-width="3.8" stroke-linecap="round"></path>
+        <path d="M76 24 L62 38" stroke="#3e4651" stroke-width="3.8" stroke-linecap="round"></path>
+        <path d="M24 76 L38 62" stroke="#3e4651" stroke-width="3.8" stroke-linecap="round"></path>
+        <path d="M76 76 L62 62" stroke="#3e4651" stroke-width="3.8" stroke-linecap="round"></path>
       </g>
 
       <g class="fan-rotor" style="animation-duration: ${spinDuration(fan.speed)}s">
         ${createBladeMarkup(fan)}
-        <circle cx="50" cy="50" r="14" fill="url(#hub-${fan.id})"></circle>
-        <circle cx="50" cy="50" r="8.8" fill="${fan.sticker}" ${stickerStroke} stroke-width="1.5"></circle>
+        <circle cx="50" cy="50" r="12.2" fill="url(#hub-${fan.id})"></circle>
+        <circle cx="50" cy="50" r="7.4" fill="${fan.sticker}" ${stickerStroke} stroke-width="1.3"></circle>
       </g>
 
       <circle cx="16.5" cy="16.5" r="3.8" fill="#0f1216"></circle>
@@ -770,11 +770,11 @@ function createBladeMarkup(fan) {
     markup += `
       <g transform="rotate(${angle} 50 50)">
         <path
-          d="M50 49 C57 24, 72 21, 75 29 C76 38, 67 45, 55 50 Z"
+          d="M50 49 C58 22, 74 20, 77 28 C78 38, 68 46, 55 51 Z"
           fill="#101419"
         ></path>
         <path
-          d="M53 48 C59 30, 69 28, 70 33 C70 39, 63 43, 56 45 Z"
+          d="M53 48 C60 29, 71 27, 72 32 C72 39, 64 44, 56 46 Z"
           fill="rgba(255,255,255,0.06)"
         ></path>
       </g>
