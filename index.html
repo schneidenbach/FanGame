@@ -71,6 +71,41 @@
           </button>
         </div>
 
+        <div id="freeplay-card" class="freeplay-card is-hidden">
+          <p class="label">Free Play</p>
+          <p id="freeplay-text" class="freeplay-text">
+            Tap a fan, drag it around, then choose a speed.
+          </p>
+          <div class="speed-buttons" role="group" aria-label="Fan speed">
+            <button class="speed-button" data-speed-choice="0" type="button">0</button>
+            <button class="speed-button" data-speed-choice="1" type="button">1</button>
+            <button class="speed-button" data-speed-choice="2" type="button">2</button>
+            <button class="speed-button" data-speed-choice="3" type="button">3</button>
+          </div>
+        </div>
+
+        <div class="size-card">
+          <div class="size-head">
+            <p class="label">Fan Size</p>
+            <strong id="size-label" class="size-label">Medium</strong>
+          </div>
+          <input
+            id="size-slider"
+            class="size-slider"
+            type="range"
+            min="0"
+            max="2"
+            step="1"
+            value="1"
+            aria-label="Fan size"
+          />
+          <div class="size-ticks" aria-hidden="true">
+            <span>Small</span>
+            <span>Medium</span>
+            <span>Large</span>
+          </div>
+        </div>
+
         <p id="status-text" class="status-text" aria-live="polite">
           Tap the glowing fan to begin.
         </p>
