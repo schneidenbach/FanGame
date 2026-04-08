@@ -733,7 +733,7 @@ function fanSvgMarkup(fan) {
 
       <circle cx="50" cy="50" r="36.5" fill="none" ${ringStroke} stroke-width="4.2"></circle>
       <circle cx="50" cy="50" r="32.5" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.2"></circle>
-      <circle cx="50" cy="50" r="25.5" fill="rgba(255,255,255,0.04)"></circle>
+      <circle cx="50" cy="50" r="25.5" fill="rgba(255,244,214,0.22)"></circle>
 
       <g opacity="0.9">
         <path d="M24 24 L38 38" stroke="#3e4651" stroke-width="3.8" stroke-linecap="round"></path>
