@@ -731,8 +731,9 @@ function fanSvgMarkup(fan) {
       <path d="M8 76 L24 92 L30 86 L14 70 Z" fill="#2d343e"></path>
       <path d="M76 92 L92 76 L86 70 L70 86 Z" fill="#2d343e"></path>
 
-      <circle cx="50" cy="50" r="31.5" fill="none" ${ringStroke} stroke-width="8"></circle>
-      <circle cx="50" cy="50" r="26.4" fill="#0f1318"></circle>
+      <circle cx="50" cy="50" r="34.5" fill="none" ${ringStroke} stroke-width="5.5"></circle>
+      <circle cx="50" cy="50" r="30.5" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.4"></circle>
+      <circle cx="50" cy="50" r="22.8" fill="rgba(15,19,24,0.34)"></circle>
 
       <g opacity="0.9">
         <path d="M24 24 L38 38" stroke="#3e4651" stroke-width="4.6" stroke-linecap="round"></path>
@@ -769,11 +770,11 @@ function createBladeMarkup(fan) {
     markup += `
       <g transform="rotate(${angle} 50 50)">
         <path
-          d="M50 49 C56 26, 70 23, 73 31 C74 40, 66 45, 55 49 Z"
+          d="M50 49 C57 24, 72 21, 75 29 C76 38, 67 45, 55 50 Z"
           fill="#101419"
         ></path>
         <path
-          d="M53 48 C58 31, 67 30, 68 34 C68 39, 62 42, 56 44 Z"
+          d="M53 48 C59 30, 69 28, 70 33 C70 39, 63 43, 56 45 Z"
           fill="rgba(255,255,255,0.06)"
         ></path>
       </g>
