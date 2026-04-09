@@ -14,6 +14,8 @@ const awakeCount = document.getElementById("awake-count");
 const breezeLevel = document.getElementById("breeze-level");
 const statusText = document.getElementById("status-text");
 const soundToggle = document.getElementById("sound-toggle");
+const freePlayButton = document.getElementById("free-play-button");
+const addFanButton = document.getElementById("add-fan-button");
 const restartButton = document.getElementById("restart-button");
 const sizeSlider = document.getElementById("size-slider");
 const sizeLabel = document.getElementById("size-label");
@@ -25,6 +27,19 @@ const SIZE_PRESETS = [
   { label: "Small", scale: 1 },
   { label: "Medium", scale: 1.18 },
   { label: "Large", scale: 1.34 }
+];
+const MIN_FAN_SIZE = 92;
+const MAX_FAN_SIZE = 284;
+const COLOR_CHOICES = [
+  { key: "rainbow", label: "rainbow", accent: "#ffd36f", sticker: "#ffd36f", ring: "rgb" },
+  { key: "green", label: "green", accent: "#79ddb6", sticker: "#79ddb6" },
+  { key: "blue", label: "blue", accent: "#83c4ff", sticker: "#83c4ff" },
+  { key: "yellow", label: "yellow", accent: "#ffd36f", sticker: "#ffd36f" },
+  { key: "red", label: "red", accent: "#ff8473", sticker: "#ff8473" },
+  { key: "white", label: "white", accent: "#b8f3ff", sticker: "#b8f3ff" },
+  { key: "orange", label: "orange", accent: "#ffb56c", sticker: "#ffb56c" },
+  { key: "pink", label: "pink", accent: "#ff9acc", sticker: "#ff9acc" },
+  { key: "mint", label: "mint", accent: "#8ef0d8", sticker: "#8ef0d8" }
 ];
 
 const fanDefinitions = [
@@ -116,8 +131,32 @@ let audioState = {
   context: null
 };
 let dragState = null;
+let resizeState = null;
 
 restartButton.addEventListener("click", resetGame);
+freePlayButton.addEventListener("click", () => {
+  if (isFreePlay()) {
+    setStatus("Free play is already on.");
+    return;
+  }
+
+  enterFreePlay({
+    statusMessage: "Free play is on. Drag, resize, recolor, or add fans."
+  });
+});
+addFanButton.addEventListener("click", () => {
+  if (!isFreePlay()) {
+    return;
+  }
+
+  const fan = createRandomFan();
+  fans.push(fan);
+  state.selectedFanId = fan.id;
+  renderFans();
+  updateHud();
+  setStatus(`${fan.shortLabel} fan added.`);
+  playSoftWhoosh();
+});
 soundToggle.addEventListener("click", () => {
   unlockAudio();
   audioState.enabled = !audioState.enabled;
@@ -132,13 +171,23 @@ sizeSlider.addEventListener("input", () => {
 
 fanField.addEventListener("click", (event) => {
   const speedChoice = event.target.closest(".fan-speed-choice");
-  if (speedChoice && state.finished) {
+  if (speedChoice && isFreePlay()) {
     const fan = currentSelectedFan();
     fan.speed = Number(speedChoice.dataset.speedChoice);
     renderFans();
     updateHud();
     playFanBoost();
     setStatus(`${fan.shortLabel} fan speed is ${fan.speed}.`);
+    return;
+  }
+
+  const colorChoice = event.target.closest(".fan-color-choice");
+  if (colorChoice && isFreePlay()) {
+    const fan = currentSelectedFan();
+    applyColorChoice(fan, colorChoice.dataset.colorChoice);
+    renderFans();
+    setStatus(`${fan.shortLabel} fan color updated.`);
+    playSoftWhoosh();
     return;
   }
 
@@ -154,7 +203,7 @@ fanField.addEventListener("click", (event) => {
     return;
   }
 
-  if (state.finished) {
+  if (isFreePlay()) {
     selectFan(fan.id);
     playSoftWhoosh();
     return;
@@ -181,7 +230,7 @@ fanField.addEventListener("click", (event) => {
 });
 
 window.addEventListener("keydown", (event) => {
-  if (state.finished || !state.currentTask || state.currentTask.type !== "word") {
+  if (isFreePlay() || !state.currentTask || state.currentTask.type !== "word") {
     return;
   }
 
@@ -229,9 +278,10 @@ function resetGame() {
     wordProgress: 0,
     lastFanId: "",
     lastWord: "",
-    finished: false,
+    mode: "game",
     selectedFanId: "hero",
-    sizeIndex: Number(sizeSlider.value || 1)
+    sizeIndex: Number(sizeSlider.value || 1),
+    fanIdCounter: fanDefinitions.length + 1
   };
 
   renderStars();
@@ -240,6 +290,7 @@ function resetGame() {
   updateHud();
   renderSoundToggle();
   renderSizeControl();
+  renderModeControls();
   setStatus("Tap the glowing fan to begin.");
 }
 
@@ -279,23 +330,11 @@ function pickNextTask() {
 }
 
 function finishGame() {
-  state.finished = true;
-  fans.forEach((fan) => {
-    fan.speed = 3;
+  enterFreePlay({
+    spinAll: true,
+    statusMessage: "Every fan is spinning. Hooray.",
+    playCelebration: true
   });
-
-  state.currentTask = {
-    type: "done",
-    title: "Free Play Time",
-    instructions: "Drag the fans around. The selected fan gets speed buttons above it.",
-    prompt: "Now you can move the fans and change their speed."
-  };
-
-  updateTaskUi();
-  renderFans();
-  updateHud();
-  setStatus("Every fan is spinning. Hooray.");
-  playRoundWin();
 }
 
 function completeTask(message) {
@@ -319,8 +358,8 @@ function completeTask(message) {
 }
 
 function updateTaskUi() {
-  roundPill.textContent = state.finished
-    ? `Round ${TOTAL_ROUNDS} / ${TOTAL_ROUNDS}`
+  roundPill.textContent = isFreePlay()
+    ? "Free Play"
     : `Round ${state.round} / ${TOTAL_ROUNDS}`;
 
   taskTitle.textContent = state.currentTask.title;
@@ -345,6 +384,7 @@ function updateTaskUi() {
   renderWordTrack();
   renderFans();
   updateHud();
+  renderModeControls();
 }
 
 function updateHud() {
@@ -361,6 +401,12 @@ function renderSizeControl() {
   const preset = SIZE_PRESETS[state.sizeIndex];
   sizeSlider.value = String(state.sizeIndex);
   sizeLabel.textContent = preset.label;
+}
+
+function renderModeControls() {
+  freePlayButton.disabled = isFreePlay();
+  freePlayButton.textContent = isFreePlay() ? "Free Play On" : "Free Play";
+  addFanButton.disabled = !isFreePlay();
 }
 
 function renderStars() {
@@ -411,6 +457,7 @@ function renderWordTrack() {
 function renderFans() {
   fanField.innerHTML = "";
   const sizeScale = SIZE_PRESETS[state.sizeIndex].scale;
+  const fieldMetrics = getFieldMetrics();
 
   fans.forEach((fan) => {
     const button = document.createElement("button");
@@ -421,10 +468,10 @@ function renderFans() {
     button.dataset.x = String(fan.x);
     button.dataset.y = String(fan.y);
 
-    if (state.currentTask && state.currentTask.targetId === fan.id && !state.finished) {
+    if (state.currentTask && state.currentTask.targetId === fan.id && !isFreePlay()) {
       button.classList.add("is-target");
     }
-    if (state.finished && state.selectedFanId === fan.id) {
+    if (isFreePlay() && state.selectedFanId === fan.id) {
       button.classList.add("is-selected");
     }
 
@@ -457,21 +504,35 @@ function renderFans() {
     button.appendChild(caption);
     fanField.appendChild(button);
 
-    if (state.finished && state.selectedFanId === fan.id) {
-      fanField.appendChild(renderSpeedPopover(fan, sizeScale));
+    if (isFreePlay() && state.selectedFanId === fan.id) {
+      const speedPopover = renderSpeedPopover(fan, sizeScale, fieldMetrics);
+      const colorPopover = renderColorPopover(fan, sizeScale, fieldMetrics);
+      fanField.appendChild(speedPopover);
+      fanField.appendChild(colorPopover);
+      keepFloatingControlInBounds(speedPopover, fieldMetrics, 12);
+      keepFloatingControlInBounds(colorPopover, fieldMetrics, 12);
+      renderResizeHandles(fan, sizeScale, fieldMetrics).forEach((handle) => {
+        fanField.appendChild(handle);
+        keepFloatingControlInBounds(handle, fieldMetrics, 8);
+      });
     }
   });
 }
 
-function renderSpeedPopover(fan, sizeScale) {
+function renderSpeedPopover(fan, sizeScale, fieldMetrics) {
   const popover = document.createElement("div");
   popover.className = "fan-speed-popover";
-  popover.style.left = `${fan.x}%`;
-  popover.style.top = `calc(${fan.y}% - ${Math.round((fan.size * sizeScale) / 2)}px - 18px)`;
+  positionEditorElement(popover, fan, sizeScale, fieldMetrics, {
+    xOffset: 0,
+    yOffset: -Math.round((fan.size * sizeScale) / 2) - 24,
+    minX: 88,
+    minY: 34
+  });
 
   [0, 1, 2, 3].forEach((speed) => {
-    const chip = document.createElement("span");
+    const chip = document.createElement("button");
     chip.className = "fan-speed-choice";
+    chip.type = "button";
     chip.dataset.speedChoice = String(speed);
     chip.textContent = String(speed);
     if (fan.speed === speed) {
@@ -481,6 +542,62 @@ function renderSpeedPopover(fan, sizeScale) {
   });
 
   return popover;
+}
+
+function renderColorPopover(fan, sizeScale, fieldMetrics) {
+  const popover = document.createElement("div");
+  popover.className = "fan-color-popover";
+  positionEditorElement(popover, fan, sizeScale, fieldMetrics, {
+    xOffset: 0,
+    yOffset: Math.round((fan.size * sizeScale) / 2) + 26,
+    minX: 156,
+    minY: 34,
+    maxYInset: 40
+  });
+
+  const activeColor = currentColorChoiceKey(fan);
+  COLOR_CHOICES.forEach((choice) => {
+    const chip = document.createElement("button");
+    chip.className = "fan-color-choice";
+    chip.type = "button";
+    chip.dataset.colorChoice = choice.key;
+    chip.setAttribute("aria-label", `${choice.label} fan color`);
+    chip.style.background = choice.ring === "rgb"
+      ? "linear-gradient(135deg, #ff8b76, #ffe17c 32%, #6fe3c3 68%, #82c1ff)"
+      : choice.accent;
+    if (choice.key === activeColor) {
+      chip.classList.add("is-active");
+    }
+    popover.appendChild(chip);
+  });
+
+  return popover;
+}
+
+function renderResizeHandles(fan, sizeScale, fieldMetrics) {
+  const size = Math.round(fan.size * sizeScale);
+  const half = size / 2;
+  const centerX = (fan.x / 100) * fieldMetrics.width;
+  const centerY = (fan.y / 100) * fieldMetrics.height;
+  const offset = 10;
+  const corners = [
+    { corner: "nw", x: centerX - half - offset, y: centerY - half - offset },
+    { corner: "ne", x: centerX + half + offset, y: centerY - half - offset },
+    { corner: "sw", x: centerX - half - offset, y: centerY + half + offset },
+    { corner: "se", x: centerX + half + offset, y: centerY + half + offset }
+  ];
+
+  return corners.map(({ corner, x, y }) => {
+    const handle = document.createElement("button");
+    handle.className = `fan-resize-handle fan-resize-handle-${corner}`;
+    handle.type = "button";
+    handle.dataset.fanId = fan.id;
+    handle.dataset.corner = corner;
+    handle.setAttribute("aria-label", `Resize ${fan.shortLabel} fan`);
+    handle.style.left = `${clamp(x, 16, fieldMetrics.width - 16)}px`;
+    handle.style.top = `${clamp(y, 16, fieldMetrics.height - 16)}px`;
+    return handle;
+  });
 }
 
 function chooseClickFan() {
@@ -528,6 +645,11 @@ function selectFan(fanId) {
   state.selectedFanId = fanId;
   renderFans();
   const fan = currentSelectedFan();
+  if (isFreePlay()) {
+    setStatus(`${fan.shortLabel} fan is selected. Drag it, resize it, or change its color.`);
+    return;
+  }
+
   setStatus(`${fan.shortLabel} fan is selected.`);
 }
 
@@ -543,6 +665,113 @@ function boostFan(fan, amount) {
   fan.speed = Math.min(fan.speed + amount, 3);
   renderFans();
   updateHud();
+}
+
+function isFreePlay() {
+  return state.mode === "freeplay";
+}
+
+function enterFreePlay({ spinAll = false, statusMessage, playCelebration = false } = {}) {
+  state.mode = "freeplay";
+
+  if (spinAll) {
+    fans.forEach((fan) => {
+      fan.speed = 3;
+    });
+  }
+
+  state.currentTask = {
+    type: "done",
+    title: "Free Play Time",
+    instructions: "Pick a fan to drag it, resize it from the corner boxes, change its color, or add new fans.",
+    prompt: "Free Play: drag, resize, recolor, and add fans."
+  };
+
+  updateTaskUi();
+  renderFans();
+  updateHud();
+  renderModeControls();
+  setStatus(statusMessage || "Free play is on.");
+
+  if (playCelebration) {
+    playRoundWin();
+  }
+}
+
+function applyColorChoice(fan, colorKey) {
+  const choice = COLOR_CHOICES.find((item) => item.key === colorKey);
+  if (!choice) {
+    return;
+  }
+
+  fan.accent = choice.accent;
+  fan.sticker = choice.sticker;
+  fan.ring = choice.ring || "solid";
+  fan.shortLabel = choice.label;
+  fan.label = `${choice.label} fan`;
+}
+
+function currentColorChoiceKey(fan) {
+  if (fan.ring === "rgb") {
+    return "rainbow";
+  }
+
+  const match = COLOR_CHOICES.find((choice) => choice.accent === fan.accent && !choice.ring);
+  return match ? match.key : "yellow";
+}
+
+function createRandomFan() {
+  const choice = pickRandom(COLOR_CHOICES.filter((item) => item.key !== "rainbow"));
+  const id = `fan-${state.fanIdCounter}`;
+  state.fanIdCounter += 1;
+
+  return {
+    id,
+    label: `${choice.label} fan`,
+    shortLabel: choice.label,
+    x: randomBetween(18, 82),
+    y: randomBetween(20, 78),
+    size: randomBetween(108, 168),
+    speed: pickRandom([0, 1, 2, 3]),
+    accent: choice.accent,
+    sticker: choice.sticker,
+    ring: choice.ring || "solid",
+    special: false
+  };
+}
+
+function randomBetween(min, max) {
+  return Math.round(min + Math.random() * (max - min));
+}
+
+function getFieldMetrics() {
+  return {
+    width: fanField.clientWidth || fanField.offsetWidth || 1,
+    height: fanField.clientHeight || fanField.offsetHeight || 1
+  };
+}
+
+function positionEditorElement(element, fan, sizeScale, fieldMetrics, options) {
+  const centerX = (fan.x / 100) * fieldMetrics.width;
+  const centerY = (fan.y / 100) * fieldMetrics.height;
+  const minX = options.minX || 32;
+  const minY = options.minY || 32;
+  const maxYInset = options.maxYInset || 32;
+  const left = clamp(centerX + (options.xOffset || 0), minX, fieldMetrics.width - minX);
+  const top = clamp(centerY + (options.yOffset || 0), minY, fieldMetrics.height - maxYInset);
+
+  element.style.left = `${left}px`;
+  element.style.top = `${top}px`;
+}
+
+function keepFloatingControlInBounds(element, fieldMetrics, padding) {
+  const halfWidth = (element.offsetWidth || 0) / 2;
+  const halfHeight = (element.offsetHeight || 0) / 2;
+  const left = clamp(parseFloat(element.style.left), padding + halfWidth, fieldMetrics.width - padding - halfWidth);
+  const top = clamp(parseFloat(element.style.top), padding + halfHeight, fieldMetrics.height - padding - halfHeight);
+
+  element.style.left = `${left}px`;
+  element.style.top = `${top}px`;
 }
 
 function speedLabel(speed) {
@@ -622,7 +851,13 @@ function renderSoundToggle() {
 }
 
 function handlePointerDown(event) {
-  if (!state.finished) {
+  if (!isFreePlay()) {
+    return;
+  }
+
+  const resizeHandle = event.target.closest(".fan-resize-handle");
+  if (resizeHandle) {
+    startResize(event, resizeHandle);
     return;
   }
 
@@ -651,6 +886,25 @@ function handlePointerDown(event) {
   button.addEventListener("pointermove", handlePointerMove);
   button.addEventListener("pointerup", handlePointerUp);
   button.addEventListener("pointercancel", handlePointerUp);
+}
+
+function startResize(event, handle) {
+  const fan = fans.find((item) => item.id === handle.dataset.fanId);
+  if (!fan) {
+    return;
+  }
+
+  state.selectedFanId = fan.id;
+  resizeState = {
+    fanId: fan.id,
+    pointerId: event.pointerId,
+    fieldRect: fanField.getBoundingClientRect()
+  };
+
+  window.addEventListener("pointermove", handleResizeMove);
+  window.addEventListener("pointerup", handleResizeUp);
+  window.addEventListener("pointercancel", handleResizeUp);
+  event.preventDefault();
 }
 
 function handlePointerMove(event) {
@@ -696,6 +950,43 @@ function handlePointerUp(event) {
   if (wasMoved) {
     renderFans();
     setStatus(`${currentSelectedFan().shortLabel} fan moved.`);
+    playSoftWhoosh();
+  }
+}
+
+function handleResizeMove(event) {
+  if (!resizeState || resizeState.pointerId !== event.pointerId) {
+    return;
+  }
+
+  const fan = fans.find((item) => item.id === resizeState.fanId);
+  if (!fan) {
+    return;
+  }
+
+  const sizeScale = SIZE_PRESETS[state.sizeIndex].scale;
+  const centerX = resizeState.fieldRect.left + (resizeState.fieldRect.width * fan.x) / 100;
+  const centerY = resizeState.fieldRect.top + (resizeState.fieldRect.height * fan.y) / 100;
+  const halfSize = Math.max(Math.abs(event.clientX - centerX), Math.abs(event.clientY - centerY));
+
+  fan.size = clamp(Math.round((halfSize * 2) / sizeScale), MIN_FAN_SIZE, MAX_FAN_SIZE);
+  renderFans();
+}
+
+function handleResizeUp(event) {
+  if (!resizeState || resizeState.pointerId !== event.pointerId) {
+    return;
+  }
+
+  const fan = fans.find((item) => item.id === resizeState.fanId);
+  resizeState = null;
+  window.removeEventListener("pointermove", handleResizeMove);
+  window.removeEventListener("pointerup", handleResizeUp);
+  window.removeEventListener("pointercancel", handleResizeUp);
+
+  if (fan) {
+    renderFans();
+    setStatus(`${fan.shortLabel} fan size updated.`);
     playSoftWhoosh();
   }
 }
